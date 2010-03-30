@@ -1,0 +1,26 @@
+#* @vtlvariable name="PACKAGE_NAME" type="java.lang.String" *#
+#* @vtlvariable name="NAME" type="java.lang.String" *#
+#* @vtlvariable name="TESTED_CLASS_PACKAGE_NAME" type="java.lang.String" *#
+#* @vtlvariable name="TESTED_CLASS_NAME" type="java.lang.String" *#
+#* @vtlvariable name="TESTED_CLASS_VARIABLE_NAME" type="java.lang.String" *#
+#* @vtlvariable name="METHOD_NAME" type="java.lang.String" *#
+#* @vtlvariable name="TESTED_METHOD" type="org.intellij.plugins.junit.template.Method" *#
+#* @vtlvariable name="arg" type="org.intellij.plugins.junit.template.Parameter" *#
+
+package ${PACKAGE_NAME};
+
+import junit.framework.*;
+#if (${TESTED_CLASS_PACKAGE_NAME} != "" && ${TESTED_CLASS_NAME} != "")
+import ${TESTED_CLASS_PACKAGE_NAME}.${TESTED_CLASS_NAME};
+#end
+
+#set($TESTED_CLASS_VARIABLE_NAME = ${TESTED_CLASS_VARIABLE_NAME.replaceFirst("Impl$","").replaceFirst("^default","")})
+#set($TESTED_CLASS_VARIABLE_NAME = "${TESTED_CLASS_VARIABLE_NAME.substring(0,1).toLowerCase()}${TESTED_CLASS_VARIABLE_NAME.substring(1)}")
+/**
+ * ${TESTED_CLASS_NAME} test case
+ *
+ * @author linux_china@hotmail.com
+ */
+public class ${NAME} extends TestCase {
+    private ${TESTED_CLASS_NAME} ${TESTED_CLASS_VARIABLE_NAME};
+}
