@@ -1,0 +1,93 @@
+#* @vtlvariable name="TESTED_CLASS_PACKAGE_NAME" type="java.lang.String" *#
+#* @vtlvariable name="TESTED_CLASS_NAME" type="java.lang.String" *#
+#* @vtlvariable name="TESTED_CLASS_VARIABLE_NAME" type="java.lang.String" *#
+#* @vtlvariable name="METHOD_NAME" type="java.lang.String" *#
+#* @vtlvariable name="TESTED_METHOD" type="org.intellij.plugins.junit.template.Method" *#
+#* @vtlvariable name="arg" type="org.intellij.plugins.junit.template.Parameter" *#
+
+#set($TESTED_CLASS_VARIABLE_NAME = ${TESTED_CLASS_VARIABLE_NAME.replaceFirst("Impl$","").replaceFirst("^default","")})
+#set($TESTED_CLASS_VARIABLE_NAME = "${TESTED_CLASS_VARIABLE_NAME.substring(0,1).toLowerCase()}${TESTED_CLASS_VARIABLE_NAME.substring(1)}")
+#set($empty_string ='""')
+/**
+ * test to ${TESTED_METHOD.Name}
+ *
+ * @throws Exception exception
+ */
+public void ${METHOD_NAME}() throws Exception {
+#foreach( $arg in $TESTED_METHOD.Parameters )
+    #set($arg_value = 'null')
+    #if($arg.type =='int' || $arg.type == 'Integer')
+        #set($arg_value = '1')
+    #elseif($arg.type =='boolean' || $arg.type == 'Boolean')
+        #set($arg_value = 'true')
+    #elseif($arg.type =='float' || $arg.type == 'Float')
+        #set($arg_value = '0.0f')
+    #elseif($arg.type =='double' || $arg.type == 'Double')
+        #set($arg_value = '0.0')
+    #elseif($arg.type == 'String')
+        #set($arg_value = $empty_string)
+    #elseif($arg.type.startsWith("List<")) ##List泛型
+        #set($arg_value = " new ${arg.type.replaceFirst('List<','ArrayList<')}()")
+    #elseif($arg.type.startsWith("Collection<")) ##Collection泛型
+        #set($arg_value = " new ${arg.type.replaceFirst('Collection<','ArrayList<')}()")
+    #elseif($arg.type.startsWith("Set<")) ##Set泛型
+        #set($arg_value = " new ${arg.type.replaceFirst('Set<','HashSet<')}()")
+    #elseif($arg.type.startsWith("Map<")) ##Map泛型
+        #set($arg_value = " new ${arg.type.replaceFirst('Set<','HashMap<')}()")
+    #end
+    $arg.type $arg.Name = $arg_value;
+#end
+#if(${TESTED_METHOD.returnType} != 'void')
+    #set($TESTED_METHOD_RETURN_VARIABLE_NAME = "${TESTED_METHOD.returnType.substring(0,1).toLowerCase()}${TESTED_METHOD.returnType.substring(1)}")
+    #set($ASSERT_NAME = 'assertNotNull')
+    #set($ASSERT_MSG="Failed to execute")
+    #set($ASSERT_PARAMS = $TESTED_METHOD_RETURN_VARIABLE_NAME)
+    ##assert name and return type variable
+    #if($TESTED_METHOD.returnType =='int' || $TESTED_METHOD.returnType == 'Integer')
+        #set($ASSERT_NAME = 'assertEquals')
+        #set($TESTED_METHOD_RETURN_VARIABLE_NAME ='result')
+    #elseif($TESTED_METHOD.returnType =='boolean' || $TESTED_METHOD.returnType == 'Boolean')
+        #set($ASSERT_NAME = 'assertTrue')
+        #set($TESTED_METHOD_RETURN_VARIABLE_NAME ='result')
+    #elseif($TESTED_METHOD.returnType =='float' || $TESTED_METHOD.returnType == 'Float')
+        #set($ASSERT_NAME = 'assertEquals')
+        #set($TESTED_METHOD_RETURN_VARIABLE_NAME ='result')
+    #elseif($TESTED_METHOD.returnType =='double' || $TESTED_METHOD.returnType == 'Double')
+        #set($ASSERT_NAME = 'assertEquals')
+        #set($TESTED_METHOD_RETURN_VARIABLE_NAME ='result')
+    #elseif($TESTED_METHOD.returnType =='String')
+        #set($ASSERT_NAME = 'assertEquals')
+        #set($TESTED_METHOD_RETURN_VARIABLE_NAME ='str')
+    #elseif($TESTED_METHOD.returnType.contains("<"))
+        #set($ASSERT_NAME = 'assertTrue')
+        #set($TESTED_METHOD_RETURN_VARIABLE_NAME = "${TESTED_METHOD_RETURN_VARIABLE_NAME.substring(${TESTED_METHOD_RETURN_VARIABLE_NAME.lastIndexOf('<')})}")
+        #set($TESTED_METHOD_RETURN_VARIABLE_NAME = "${TESTED_METHOD_RETURN_VARIABLE_NAME.substring(1,${TESTED_METHOD_RETURN_VARIABLE_NAME.indexOf('>')})}")
+        #set($TESTED_METHOD_RETURN_VARIABLE_NAME = "${TESTED_METHOD_RETURN_VARIABLE_NAME.substring(0,1).toLowerCase()}${TESTED_METHOD_RETURN_VARIABLE_NAME.substring(1)}s")
+    #end
+    ## reset return type variable name
+    #foreach( $arg in $TESTED_METHOD.Parameters)
+        #if( $arg.Name == $TESTED_METHOD_RETURN_VARIABLE_NAME)
+            #set($TESTED_METHOD_RETURN_VARIABLE_NAME = "${TESTED_METHOD_RETURN_VARIABLE_NAME}2")
+        #end
+    #end
+    ## assert parameters
+    #if($TESTED_METHOD.returnType =='int' || $TESTED_METHOD.returnType == 'Integer')
+        #set($ASSERT_PARAMS = "1, ${TESTED_METHOD_RETURN_VARIABLE_NAME}")
+    #elseif($TESTED_METHOD.returnType =='boolean' || $TESTED_METHOD.returnType == 'Boolean')
+        #set($ASSERT_PARAMS = ${TESTED_METHOD_RETURN_VARIABLE_NAME})
+    #elseif($TESTED_METHOD.returnType =='float' || $TESTED_METHOD.returnType == 'Float')
+        #set($ASSERT_PARAMS = "0.0f, ${TESTED_METHOD_RETURN_VARIABLE_NAME}")
+    #elseif($TESTED_METHOD.returnType =='double' || $TESTED_METHOD.returnType == 'Double')
+        #set($ASSERT_PARAMS = "0.0, ${TESTED_METHOD_RETURN_VARIABLE_NAME}")
+    #elseif($TESTED_METHOD.returnType =='String')
+        #set($ASSERT_PARAMS = "${empty_string}, ${TESTED_METHOD_RETURN_VARIABLE_NAME}")
+    #elseif($TESTED_METHOD.returnType.contains("<"))
+        #set($ASSERT_PARAMS = "!${TESTED_METHOD_RETURN_VARIABLE_NAME}.isEmpty()")
+    #end
+    ${TESTED_METHOD.returnType} $TESTED_METHOD_RETURN_VARIABLE_NAME =   ${TESTED_CLASS_VARIABLE_NAME}.${TESTED_METHOD.Name}(#foreach( $arg in $TESTED_METHOD.Parameters ) $arg.Name#if($velocityCount<${TESTED_METHOD.Parameters.size()}),#end #end);
+    ${ASSERT_NAME}("${ASSERT_MSG}", $ASSERT_PARAMS);
+#else
+    ${TESTED_CLASS_VARIABLE_NAME}.${TESTED_METHOD.Name}(#foreach( $arg in $TESTED_METHOD.Parameters ) $arg.Name#if($velocityCount<${TESTED_METHOD.Parameters.size()}),#end #end);
+    asserTrue(true);
+#end
+}
